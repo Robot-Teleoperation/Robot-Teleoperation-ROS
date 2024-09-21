@@ -1,5 +1,0 @@
-int64 req
----
-string class_name
-string instructions
-string model

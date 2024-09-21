@@ -6,7 +6,7 @@ import rclpy
 from rclpy.node import Node
 from ultralytics import YOLO
 import torch
-from hololens_msgs.msg import Image
+from hololens_msgs.msg import Image, AIData
 from hololens_msgs.srv import GetAIData
 
 # import the message types
@@ -19,14 +19,14 @@ class AIDBService(Node):
         self.db_init()
 
         # load the yolo model
-        model_path = 'yolov5s.pt'
+        model_path = 'satellite.pt'
         self.yolo = YOLO(model_path)
         # load the model to the gpu if available
         if torch.cuda.is_available():
             self.yolo.cuda()
 
         self.frame = None
-
+        self.scene_names = []
         # initialize the node
         #rospy.init_node('ai_db_service', anonymous=True)
         # subscribe to the camera data
@@ -37,15 +37,28 @@ class AIDBService(Node):
             10)
         self.subscription
         # create the ai db service
-        self.srv = self.create_service(
-            GetAIData, 
-            'ai_db_data', 
-            self.ai_callback)
-        self.srv
+        #self.srv = self.create_service(
+        #    GetAIData, 
+        #    'ai_db_data', 
+        #    self.ai_callback)
+        #self.srv
+        self.publisher_ = self.create_publisher(
+            AIData,
+            'ai_data',
+            10)
+        self.publisher_
 
+        # 1 second
+        timer_period = 1
+        self.timer = self.create_timer(timer_period, self.publish_data)
+    
+    def publish_data(self):
+        msg = AIData()
+        msg.scene_names = self.scene_names
+        self.publisher_.publish(msg)
         
     def db_init(self):
-        table_name = 'classification'
+        table_name = 'scenes'
         # check if table exists
         exists = self.cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{table_name}';")
         if not exists.fetchone():
@@ -54,12 +67,11 @@ class AIDBService(Node):
                 CREATE TABLE IF NOT EXISTS {table_name} (
                     id INTEGER PRIMARY KEY,
                     class VARCHAR(255),
-                    instructions TEXT,
-                    model VARCHAR(255)
+                    scene_name TEXT
                 )
             ''')
     """
-    Set self.frame to the image data published from the camera
+    Set self.frame to the image data published
     """
     def camera_callback(self, msg):
         """
@@ -69,6 +81,17 @@ class AIDBService(Node):
         image = np.asarray(bytearray(msg.data), dtype=np.uint8)
         # decode the image
         self.frame = cv2.imdecode(image, cv2.IMREAD_COLOR)
+        
+        print("Received service request")
+        # run the yolo model on the image
+        results = self.yolo(self.frame)
+        # get the class of the object
+        class_names = results[0].names
+
+        #self.scene_names = [self.get_data(name) for name in class_names]
+        self.scene_names = ["ACRIMSAT_Fine_Sun_Sensor"]
+
+        
 
     """
     Respond to get_ai_data srv request with the class name, instructions, and 3d model for the object in the image
@@ -77,19 +100,21 @@ class AIDBService(Node):
         """
         Service to get ai data
         """
-        # get the image from the camera
-        frame = self.frame
+        print("Received service request")
         # run the yolo model on the image
-        results = self.yolo(frame)
+        results = self.yolo(self.frame)
         # get the class of the object
-        class_name = results.names[0]
+        class_names = results.names
+        
+        #scene_names = [self.get_data(name) for name in class_names]
+        scene_names = ["ACRIMSAT_Fine_Sun_Sensor"]
+
         # get the instructions for the class
-        instructions, model = self.get_data(class_name)
+        #instructions, model = self.get_data(class_name)
+        #scene_name = self.get_data("solar_panel")
 
         # create the response srv message
-        response.class_name = class_name
-        response.instructions = instructions
-        response.model = model
+        response.scene_names = scene_names
 
         return response
     
@@ -101,12 +126,10 @@ class AIDBService(Node):
         Get the data for the class
         """
         # get the data from the database
-        self.cursor.execute(f"SELECT * FROM classification WHERE class='{class_name}'")
+        self.cursor.execute(f"SELECT scene_name FROM scenes WHERE class='{class_name}'")
         data = self.cursor.fetchone()
         if data:
-            return data[1], data[2]
-        else:
-            return None, None
+            return data[0]
 
 
 def main(args=None):

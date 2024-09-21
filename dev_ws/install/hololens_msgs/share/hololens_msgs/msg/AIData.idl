@@ -1,0 +1,12 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from hololens_msgs/msg/AIData.msg
+// generated code does not contain a copyright notice
+
+
+module hololens_msgs {
+  module msg {
+    struct AIData {
+      sequence<string> scene_names;
+    };
+  };
+};

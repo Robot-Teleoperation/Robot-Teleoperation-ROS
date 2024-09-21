@@ -1,1 +1,1 @@
-/opt/ros/foxy
+/opt/ros/foxy:/home/dev_ws/install/unity_robotics_demo_msgs:/home/dev_ws/install/unity_robotics_demo:/home/dev_ws/install/ros_tcp_endpoint:/home/dev_ws/install/ai_database:/home/dev_ws/install/hololens_msgs

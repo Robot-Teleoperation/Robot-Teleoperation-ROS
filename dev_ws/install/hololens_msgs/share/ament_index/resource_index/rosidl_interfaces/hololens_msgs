@@ -1,3 +1,5 @@
+msg/AIData.idl
+msg/AIData.msg
 msg/Image.idl
 msg/Image.msg
 srv/GetAIData.idl
