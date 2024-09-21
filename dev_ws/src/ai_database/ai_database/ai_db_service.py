@@ -27,8 +27,7 @@ class AIDBService(Node):
 
         self.frame = None
         self.scene_names = []
-        # initialize the node
-        #rospy.init_node('ai_db_service', anonymous=True)
+
         # subscribe to the camera data
         self.subscription = self.create_subscription(
             Image, 
@@ -36,19 +35,15 @@ class AIDBService(Node):
             self.camera_callback, 
             10)
         self.subscription
-        # create the ai db service
-        #self.srv = self.create_service(
-        #    GetAIData, 
-        #    'ai_db_data', 
-        #    self.ai_callback)
-        #self.srv
+
+        # create the publisher
         self.publisher_ = self.create_publisher(
             AIData,
             'ai_data',
             10)
         self.publisher_
 
-        # 1 second
+        # 1 second timer to publish the data
         timer_period = 1
         self.timer = self.create_timer(timer_period, self.publish_data)
     
@@ -82,41 +77,14 @@ class AIDBService(Node):
         # decode the image
         self.frame = cv2.imdecode(image, cv2.IMREAD_COLOR)
         
-        print("Received service request")
         # run the yolo model on the image
         results = self.yolo(self.frame)
         # get the class of the object
         class_names = results[0].names
 
+        # Uncomment the following line and comment the next line to get the class names from the database
         #self.scene_names = [self.get_data(name) for name in class_names]
         self.scene_names = ["ACRIMSAT_Fine_Sun_Sensor"]
-
-        
-
-    """
-    Respond to get_ai_data srv request with the class name, instructions, and 3d model for the object in the image
-    """
-    def ai_callback(self, request, response):
-        """
-        Service to get ai data
-        """
-        print("Received service request")
-        # run the yolo model on the image
-        results = self.yolo(self.frame)
-        # get the class of the object
-        class_names = results.names
-        
-        #scene_names = [self.get_data(name) for name in class_names]
-        scene_names = ["ACRIMSAT_Fine_Sun_Sensor"]
-
-        # get the instructions for the class
-        #instructions, model = self.get_data(class_name)
-        #scene_name = self.get_data("solar_panel")
-
-        # create the response srv message
-        response.scene_names = scene_names
-
-        return response
     
     """
     Get the data for the class from the database
