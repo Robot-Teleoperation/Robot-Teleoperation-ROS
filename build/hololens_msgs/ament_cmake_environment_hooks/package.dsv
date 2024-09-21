@@ -1,0 +1,4 @@
+source;share/hololens_msgs/local_setup.bash
+source;share/hololens_msgs/local_setup.dsv
+source;share/hololens_msgs/local_setup.sh
+source;share/hololens_msgs/local_setup.zsh

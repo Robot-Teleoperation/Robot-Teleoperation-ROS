@@ -1,0 +1,17 @@
+// generated from rosidl_adapter/resource/srv.idl.em
+// with input from hololens_msgs/srv/GetAIData.srv
+// generated code does not contain a copyright notice
+
+
+module hololens_msgs {
+  module srv {
+    struct GetAIData_Request {
+      int64 point_x;
+
+      int64 point_y;
+    };
+    struct GetAIData_Response {
+      sequence<string> scene_names;
+    };
+  };
+};

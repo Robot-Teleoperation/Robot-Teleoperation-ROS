@@ -1,0 +1,3 @@
+[console_scripts]
+service = ai_database.ai_db_service:main
+

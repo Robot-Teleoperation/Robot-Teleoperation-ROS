@@ -1,0 +1,7 @@
+{
+  "package_name": "hololens_msgs",
+  "non_idl_tuples": [
+    "/home/dev_ws/src/hololens_msgs:msg/Image.msg",
+    "/home/dev_ws/src/hololens_msgs:srv/GetAIData.srv"
+  ]
+}
